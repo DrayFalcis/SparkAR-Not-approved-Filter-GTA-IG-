@@ -1,0 +1,32 @@
+
+var ftGUID_4215746="4415F9B019B394";
+var ftConfID_4215746="0";
+var ftParams_4215746="ftx=&fty=&ftadz=&ftscw=&ft_custom=&ftOBA=1&ft_ifb=1&ft_domain=fsymbols.com&ft_agentEnv=0&ft_referrer=https%3A%2F%2Ffsymbols.com%2Fsigns%2Fpeso%2F&cachebuster=157363.81600640836";
+var ftKeyword_4215746="";
+var ftCustom_4215746="";
+var ftSection_4215746="";
+var ftSegment_4215746="";
+var ftSegmentList_4215746=[];
+var ftRuleMatch_4215746="0";
+var ftTimestamp_4215746="1582041142";
+var ftGeoC2_4215746="ph";
+var ftGeoState_4215746="man";
+var ftGeoCity_4215746="manila";
+var ftISP_4215746="globe telecom";
+var ftSpeed_4215746="mobile";
+var ftDMA_4215746="-1";
+var ftLong_4215746="121.004";
+var ftLat_4215746="14.5913";
+var ftPostal_4215746="1000";
+var ftTimeZone_4215746="800";
+var ftMobileCarrier_4215746="globe";
+var ftImp4215746 = {};
+ftImp4215746.privacy = "x";
+ftImp4215746.guidAge = "16";
+ftImp4215746.impID = "B55ACBBB-ED18-06F6-FA68-08D4321CCF28";
+ftImp4215746.duid = "FT:4415F9B019B394";
+
+ftImp4215746.ft_tpplid = "";
+ftImp4215746.ft_c = {};
+
+document.write('<scr'+'ipt src="https://cdn.flashtalking.com/xre/421/4215746/2776206/js/j-4215746-2776206.js" id="ftscript_m4215746" name="ftscript_m4215746"></scr'+'ipt>');

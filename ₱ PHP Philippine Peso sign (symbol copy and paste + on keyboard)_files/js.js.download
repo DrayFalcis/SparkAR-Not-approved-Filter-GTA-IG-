@@ -1,0 +1,292 @@
+window.ana_log_stuff	=	{}
+
+
+ana_log_stuff.get_Cookie	= function(cname) 
+	{
+	var name = cname + "="
+	var ca = document.cookie.split(';')
+	for(var i = 0; i < ca.length; i++) 
+		{
+		var c = ca[i]
+		while (c.charAt(0) == ' ') 
+			c = c.substring(1)
+
+		if (c.indexOf(name) == 0) 
+			return c.substring(name.length, c.length)
+		}
+	return ""
+	}
+
+
+ana_log_stuff.make_ID	=	function(length) 
+	{
+	var result				= ''
+	var characters			= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+	var charactersLength	= characters.length
+	for ( var i = 0; i < length; i++ ) 
+		result += characters.charAt(Math.floor(Math.random() * charactersLength))
+	return result
+	}
+
+
+ana_log_stuff.orientation	=	function()
+	{
+	var	angle	=	(
+						window.orientation != null
+					?
+						window.orientation
+					:
+						(
+							window.screen.orientation  != null
+							&&
+							window.screen.orientation.angle  != null
+						?
+							window.screen.orientation.angle 
+						:
+							-1
+						)
+					)
+	if	(
+		angle	==	-1
+		) return -1;
+	if	(
+			angle	==	 90
+		||	angle	==	-90
+		) return 1;
+	return 0;
+	}
+
+
+window.ana_log_stuff.screen_parameters	=	function()
+	{
+	return	{
+				availHeight	:	window.screen.availHeight
+			,	availWidth	:	window.screen.availWidth
+			,	availLeft	:	window.screen.availLeft
+			,	availTop	:	window.screen.availTop
+			,	outerHeight	:	window.outerHeight
+			,	innerHeight	:	window.innerHeight
+			,	outerWidth	:	window.outerWidth
+			,	innerWidth	:	window.innerWidth
+			,	screen_height:	window.screen.height
+			,	screen_width:	window.screen.width
+			,	screenLeft	:	window.screenLeft
+			,	screenTop	:	window.screenTop
+			,	screenX		:	window.screenX
+			,	screenY		:	window.screenY
+			,	screen_left	:	window.screen.left
+			,	screen_top	:	window.screen.top
+			,	pixelRatio	:	window.devicePixelRatio
+			,	scrollX		:	window.scrollX
+			,	scrollY		:	window.scrollY
+			,	orientation	:	window.ana_log_stuff.orientation()
+			}
+	}
+
+pre_analog_time	=	0
+if	(
+	typeof pre_analog_clock != 'undefined'
+	)
+	{
+	pre_analog_time	=	Math.floor((performance.now() - pre_analog_clock)/1000)
+	}
+
+ana_log_stuff.pageview_id		=	ana_log_stuff.make_ID(13)
+ana_log_stuff.sec_counter		=	pre_analog_time
+ana_log_stuff.ping_per			=	5
+ana_log_stuff.prev_screen_params=	''
+ana_log_stuff.mouse_coords		=	{}
+ana_log_stuff.last_change		=	new	Date()
+ana_log_stuff.idling_sent		=	0
+
+document.addEventListener('mousemove', function(e) 
+	{
+	window.ana_log_stuff.mouse_coords	=	{x:e.clientX, y:e.clientY}
+	ana_log_stuff.last_change			=	new	Date()
+	})
+document.addEventListener('keydown', function(e) 
+	{
+	ana_log_stuff.last_change			=	new	Date()
+	})
+
+ana_log_stuff.prepare_sec_counter	=	function()
+	{
+	return	['system log' , 'ping', Math.floor(ana_log_stuff.sec_counter - ana_log_stuff.sec_counter/(ana_log_stuff.ping_per+1)) ];
+	}
+
+
+
+window.ana_log	=	function(obj)
+	{
+	if	(navigator.doNotTrack	===	1)
+		return;
+
+	try
+		{
+		var xhr	= new XMLHttpRequest()
+		xhr.open(	'POST'	,	'https://tell.wtf/log/'	,	true	)
+		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+		var json=''
+
+		if	(
+				JSON.stringify( window.ana_log_stuff.screen_parameters() )
+			!=	window.ana_log_stuff.prev_screen_params
+			)
+			{
+			json	=	JSON.stringify( [	obj 
+										,	ana_log_stuff.prepare_sec_counter()
+										,	['system log' , 'screen', ana_log_stuff.screen_parameters()]
+										,	['system log' , 'mouse'	, ana_log_stuff.mouse_coords ]
+										// ,	['system log' , 'page'	, window.location.href ]
+										])
+			ana_log_stuff.prev_screen_params=	JSON.stringify( window.ana_log_stuff.screen_parameters() )
+			}
+		else
+			{
+			json	=	JSON.stringify( [	obj 
+										,	ana_log_stuff.prepare_sec_counter()
+										,	['system log' , 'mouse'	, ana_log_stuff.mouse_coords ]
+										])
+			}
+
+		xhr.send(
+					"user_id="		+ ana_log_stuff.get_Cookie('uuuser_id') 
+				+	"&pageview_id=" + ana_log_stuff.pageview_id
+				+	"&page="		+ window.location.href
+				+	"&json="		+ json  
+				)
+		}
+	catch(e)
+		{console.error(e)}
+	}
+
+
+
+
+ana_log_stuff.ana_log_init	=	function()
+	{
+	var	lang	=	''
+	try	{
+		lang	=	navigator.languages	||	navigator.language || navigator.userLanguage || navigator.browserLanguage
+		}
+	catch(e){}
+	var user_id = ana_log_stuff.get_Cookie('uuuser_id')
+	if	( user_id.length < 1 )
+		{
+		user_id	=	ana_log_stuff.make_ID(12)
+		var	cs	=	"uuuser_id="+ user_id +";expires=Thu, 18 Dec 2033 12:00:00 UTC;path=/;domain="
+		}
+
+	var iframe = document.createElement('iframe')
+	iframe.style.display = "none"
+	iframe.src = 'https://tell.wtf/log/set_cookie.php?uuuser_id='+user_id
+	document.body.appendChild(iframe)
+
+	var iframe = document.createElement('iframe')
+	iframe.style.display = "none"
+	iframe.src = 'https://text-symbols.com/set_cookie.php?uuuser_id='+user_id
+	document.body.appendChild(iframe)
+
+	var iframe = document.createElement('iframe')
+	iframe.style.display = "none"
+	iframe.src = 'https://fsymbols.com/set_cookie.php?uuuser_id='+user_id
+	document.body.appendChild(iframe)
+
+	ana_log(['system log' , 'page open', document.referrer, 3, lang, window.location.href])
+	
+	// if	(navigator.doNotTrack	===	1)
+	// 	ana_log(['system log' , 'navigator.doNotTrack'])
+
+	setInterval	(
+					function()
+					{
+					if	(
+							JSON.stringify( window.ana_log_stuff.screen_parameters() )
+						!=	window.ana_log_stuff.prev_screen_params
+						)
+						ana_log_stuff.last_change	=	new	Date()
+
+					if	(
+							document.hasFocus()
+						||
+								JSON.stringify( window.ana_log_stuff.screen_parameters() )
+							!=	window.ana_log_stuff.prev_screen_params
+						)
+						{
+						if	(	//	not idling
+									Object.keys( ana_log_stuff.mouse_coords ).length
+								==	0
+							||
+									new	Date()
+								-	ana_log_stuff.last_change
+							<	40000
+							)
+							ana_log_stuff.sec_counter++
+						else
+							if	(
+								! ana_log_stuff.idling_sent
+								)
+								{
+								ana_log_stuff.idling_sent	=	1
+								ana_log( ['idling'] )
+								}
+						}
+
+					// if	(ana_log_stuff.sec_counter	>=	6)
+					// 	ana_log_stuff.ping_per	=	4
+					if	(ana_log_stuff.sec_counter	>=	10)
+						ana_log_stuff.ping_per	=	10
+
+					if	(ana_log_stuff.sec_counter	>=	40)
+						ana_log_stuff.ping_per	=	20
+
+					if	(ana_log_stuff.sec_counter	>=	70)
+						ana_log_stuff.ping_per	=	30
+
+					if	(ana_log_stuff.sec_counter	>=	160)
+						ana_log_stuff.ping_per	=	40
+
+					if	(ana_log_stuff.sec_counter	>=	200)
+						ana_log_stuff.ping_per	=	50
+
+					if	(ana_log_stuff.sec_counter	>=	400)
+						ana_log_stuff.ping_per	=	60
+
+					if	(ana_log_stuff.sec_counter	>=	6000)
+						ana_log_stuff.ping_per	=	2000
+
+					if	(ana_log_stuff.sec_counter	>=	30000)
+						ana_log_stuff.ping_per	=	2000000000
+
+					if	(ana_log_stuff.sec_counter % (ana_log_stuff.ping_per+1) == ana_log_stuff.ping_per)
+						{
+						ana_log_stuff.sec_counter++
+						ana_log( ['pinging'] )
+						}
+					}
+				,	1000
+				)
+
+	setInterval	(
+					function()
+					{
+					if	(
+						// 	document.hasFocus()
+						// &&
+								JSON.stringify( window.ana_log_stuff.screen_parameters() )
+							!=	window.ana_log_stuff.prev_screen_params
+						)
+						{
+						ana_log( [ 'screen params changed' ] )
+						}
+					}
+				,	3500
+				)
+
+	document.addEventListener('copy', function(event) 
+		{
+		var selection = document.getSelection().toString()
+		ana_log( [ 'copied', selection.substring(0,400) ] )
+		})
+	}
+ana_log_stuff.ana_log_init()
